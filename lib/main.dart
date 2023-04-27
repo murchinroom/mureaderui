@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mureaderui/bookreader.dart';
 import 'package:mureaderui/library.dart';
+import 'package:mureaderui/readview.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 
@@ -74,6 +76,8 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+    return BookReader();
+    
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -100,7 +104,8 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Library(),
+            // const Library(),
+            MyEpubReader(),
           ],
         ),
       ),
