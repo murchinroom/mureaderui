@@ -80,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
+      body: SingleChildScrollView(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child: Column(
@@ -101,26 +101,6 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Library(),
-            // const Text(
-            //   'You have pushed the button this many times:',
-            // ),
-            // Text('$_counter')
-            //     .textStyle(Theme.of(context).textTheme.headlineMedium!)
-            //     .padding(all: 10)
-            //     .decorated(
-            //         color: const Color(0xff7AC1E7), shape: BoxShape.circle)
-            //     .padding(all: 15)
-            //     .decorated(
-            //         color: const Color(0xffE8F2F7), shape: BoxShape.circle)
-            //     .padding(all: 20)
-            //     .card(
-            //       elevation: 10,
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(20),
-            //       ),
-            //     )
-            //     .alignment(Alignment.center)
-            //     .padding(all: 20),
           ],
         ),
       ),

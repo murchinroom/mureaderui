@@ -61,7 +61,7 @@ class Library extends StatelessWidget {
         ),
         MusicOverview(),
       ],
-    ).scrollable().padding(all: 8);
+    ).scrollable(scrollDirection: Axis.vertical).padding(all: 8);
   }
 }
 
