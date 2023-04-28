@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:styled_widget/styled_widget.dart';
 
+import 'bookreader.dart';
+
 class Library extends StatelessWidget {
   const Library({super.key});
 
@@ -14,7 +16,7 @@ class Library extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text("Reading", style: Theme.of(context).textTheme.headlineMedium),
-            Spacer(),
+            const Spacer(),
             TextButton(
                 onPressed: () => {
                       showDialog(
@@ -84,14 +86,11 @@ class BookItem extends StatelessWidget {
         .card()
         .gestures(
             onTap: () => {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return const AlertDialog(
-                          title: Text("TODO"),
-                          content: Text("book read view"),
-                        );
-                      })
+                  print("book item tapped"),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => BookReader()),
+                  )
                 })
         .padding(all: 8);
   }
