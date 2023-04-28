@@ -4,10 +4,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(BookReader());
-}
-
 class BookReader extends StatefulWidget {
   @override
   _BookReaderState createState() => _BookReaderState();
@@ -37,10 +33,6 @@ class _BookReaderState extends State<BookReader> {
       });
     });
     // bookText = "Hello World\nThis is a test\nThis is only a test";
-    print("vvvvv");
-    print(bookText);
-    print("^^^^^");
-    // pages = bookText.split('\n');
 
     setState(() {
       currentPage = currentPage;
@@ -57,10 +49,10 @@ class _BookReaderState extends State<BookReader> {
   }
 
   List<String> splitText(String text) {
-    var width = context.size?.width ?? 16 - 16;
+    var width = context.size?.width ?? 0;
     var height = context.size?.height ?? 0;
 
-    print("width = $width, height = $height");
+    print("paging: width = $width, height = $height");
 
 
     final TextPainter textPainter1 = TextPainter(
@@ -72,19 +64,19 @@ class _BookReaderState extends State<BookReader> {
       textDirection: TextDirection.ltr,
     )..layout(minWidth: 0, maxWidth: width);
 
-    print("textPainter1.width = ${textPainter1.width} textPainter1.height = ${textPainter1.height}");
+    print("paging: textPainter1.width = ${textPainter1.width} textPainter1.height = ${textPainter1.height}");
 
 
     // MAGIC! DO NOT TOUCH!
     final charWidth = max(textPainter1.width, textPainter1.height);
     final charHeight = charWidth * 1.5;
 
-    print("charWidth = $charWidth, charHeight = $charHeight");
+    print("paging: charWidth = $charWidth, charHeight = $charHeight");
 
     final int charsPerLine = (width / charWidth).floor();
     final int linesPerPage = (height / charHeight).floor();
 
-    print("charsPerLine = $charsPerLine, linesPerPage = $linesPerPage");
+    print("paging: charsPerLine = $charsPerLine, linesPerPage = $linesPerPage");
 
     List<String> pages = [];
     String page = '';
@@ -103,12 +95,12 @@ class _BookReaderState extends State<BookReader> {
       if (charsLeftInLine == 0) {
         linesLeftInPage--;
         charsLeftInLine = charsPerLine;
-        page += '\n';
+        // page += '\n';
         continue;
       }
       // case 2: new paragraph -> append & enter
       if (text[i] == '\n') {
-        // page += text[i];
+        page += text[i];
         charsLeftInLine = 0;
         i++;
         continue;
@@ -222,18 +214,4 @@ class _BookReaderState extends State<BookReader> {
       return '[EOF]';
     }
   }
-}
-
-CharsPerPage(TextStyle textStyle, double width, double height) {
-  final TextPainter textPainter = TextPainter(
-    text: TextSpan(
-      text: '饿',
-      style: textStyle,
-    ),
-    maxLines: 1,
-    textDirection: TextDirection.ltr,
-  )..layout(minWidth: 0, maxWidth: width);
-  final int charsPerLine = (width / textPainter.width).floor();
-  final int linesPerPage = (height / textPainter.height).floor();
-  return charsPerLine * linesPerPage;
 }

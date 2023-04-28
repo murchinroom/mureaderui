@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mureaderui/bookreader.dart';
 import 'package:mureaderui/library.dart';
-import 'package:mureaderui/readview.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 
@@ -105,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             // const Library(),
-            MyEpubReader(),
+            // MyEpubReader(),
           ],
         ),
       ),
