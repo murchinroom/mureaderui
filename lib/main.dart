@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:mureaderui/bookreader.dart';
 import 'package:mureaderui/library.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-void main() {
+void main() async {
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
