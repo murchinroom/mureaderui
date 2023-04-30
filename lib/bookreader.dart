@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:mureaderui/api.dart';
 import 'package:mureaderui/model.dart';
 import 'package:mureaderui/storage.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -21,23 +22,23 @@ class _BookReaderState extends State<BookReader> {
   TextStyle textStyle = TextStyle(fontSize: 20.0);
   PageController pageController = PageController();
 
-  Size? pageSize;
-  TextStyle? pageTextStyle;
+  // Size? pageSize;
+  // TextStyle? pageTextStyle;
 
   bool pagenated = false;
   final scaffoldState = GlobalKey<ScaffoldState>();
 
   final player = AudioPlayer();
+  Music? playingMusic;
 
   @override
   void initState() {
     super.initState();
-    _readBook();
-
-    player.play(UrlSource(exampleMusic[0]));
+    _initPageController();
+    _initPlayer();
   }
 
-  void _readBook() {
+  void _initPageController() {
     // 依据 pageController 的 page 变化来自动
     // update reading.currentPage in storage
     pageController.addListener(() {
@@ -53,13 +54,26 @@ class _BookReaderState extends State<BookReader> {
       }
     });
 
-    pageController = pageController;
+    // pageController = pageController;
 
     // Cannot get size during build.
     // widget.reading.repaginate(Pagination.fromUI(widget.reading.book.file ?? "",
     //     context.size?.width ?? 0, context.size?.height ?? 0, textStyle));
     // updateReadingStorage();
     // pageController.jumpToPage(widget.reading.currentPage ?? 0);
+  }
+
+  void _initPlayer() {
+    player.onPlayerComplete.listen((_) async {
+      var nextSong = await _recommendNextSong();
+      if (nextSong == null || nextSong.sourceUrl == null) {
+        // unexpected: just in case.
+        nextSong = exampleMusics[0];
+      }
+      player.play(UrlSource(nextSong.sourceUrl!));
+      playingMusic = nextSong;
+    });
+    player.play(UrlSource(exampleMusic[0]));
   }
 
   void updateReadingStorage() {
@@ -70,6 +84,42 @@ class _BookReaderState extends State<BookReader> {
     widget.reading.repaginate(Pagination.fromUI(
         widget.reading.book.file ?? "", size.width, size.height, textStyle));
     updateReadingStorage();
+  }
+
+  /// _recommendNextSong 用 currentPage 及其前 2、后 3 页的文本内容作为参数，
+  /// 调用 api.murecom 推荐下一首音乐。
+  Future<Music?> _recommendNextSong() async {
+    final currentPage = widget.reading.currentPage;
+
+    List<String> prevPages;
+    if ((currentPage ?? 0) > 2) {
+      prevPages = widget.reading.pagination?.pages
+              ?.sublist(currentPage! - 2, currentPage + 0) ??
+          [];
+    } else {
+      prevPages = [];
+    }
+
+    List<String> currentPages;
+    if (currentPage != null) {
+      currentPages = [widget.reading.pagination?.pages?[currentPage] ?? ""];
+    } else {
+      currentPages = [];
+    }
+
+    List<String> nextPages;
+    final length = widget.reading.pagination?.pages?.length ?? 0;
+    if (length - (currentPage ?? length) > 3) {
+      nextPages = widget.reading.pagination?.pages
+              ?.sublist(currentPage! + 1, currentPage + 4) ??
+          [];
+    } else {
+      nextPages = [];
+    }
+
+    final resp =
+        await murecom(MurecomRequest(prevPages, currentPages, nextPages));
+    return resp.music;
   }
 
   @override
