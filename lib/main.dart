@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mureaderui/bookreader.dart';
 import 'package:mureaderui/library.dart';
+import 'package:mureaderui/model.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 void main() async {
   await GetStorage.init();
+  await GetStorage.init("ReadingStorage");
   runApp(const MyApp());
 }
 
@@ -88,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // in the middle of the parent.
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const <Widget>[
+          children: <Widget>[
             Library(),
             // MyEpubReader(),
           ],

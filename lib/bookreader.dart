@@ -4,19 +4,26 @@ import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:mureaderui/model.dart';
+import 'package:mureaderui/storage.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class BookReader extends StatefulWidget {
+  final Reading reading;
+
+  const BookReader({super.key, required this.reading});
+
   @override
   _BookReaderState createState() => _BookReaderState();
 }
 
 class _BookReaderState extends State<BookReader> {
   TextStyle textStyle = TextStyle(fontSize: 20.0);
-  String bookText = '';
   PageController pageController = PageController();
-  int currentPage = 0;
-  List<String> pages = ["Book Title"];
+
+  Size? pageSize;
+  TextStyle? pageTextStyle;
+
   bool pagenated = false;
   final scaffoldState = GlobalKey<ScaffoldState>();
 
@@ -31,110 +38,70 @@ class _BookReaderState extends State<BookReader> {
   }
 
   void _readBook() {
-    String bookPath = 'assets/h2g2.txt';
-    // File bookFile = File(bookPath);
-    // String bookText = bookFile.readAsStringSync();
-    DefaultAssetBundle.of(context).loadString(bookPath).then((String value) {
-      setState(() {
-        bookText = value;
-      });
-    });
-    // bookText = "Hello World\nThis is a test\nThis is only a test";
+    // 依据 pageController 的 page 变化来自动
+    // update reading.currentPage in storage
+    pageController.addListener(() {
+      if (pageController.page != null) {
+        final pg = pageController.page;
+        final round = pageController.page!.round();
 
-    setState(() {
-      currentPage = currentPage;
-      pageController = pageController;
+        if (pg == round /* 是个整数 */) {
+          print("$pageController: ${pageController.page}: update reading page");
+          widget.reading.currentPage = pageController.page!.round();
+          updateReadingStorage();
+        }
+      }
     });
+
+    pageController = pageController;
+
+    // Cannot get size during build.
+    // widget.reading.repaginate(Pagination.fromUI(widget.reading.book.file ?? "",
+    //     context.size?.width ?? 0, context.size?.height ?? 0, textStyle));
+    // updateReadingStorage();
+    // pageController.jumpToPage(widget.reading.currentPage ?? 0);
   }
 
-  void bookToPages() {
-    pages.addAll(splitText(bookText));
+  void updateReadingStorage() {
+    getReadingStorage().updateReading(widget.reading.ID, widget.reading);
   }
 
-  List<String> splitText(String text) {
-    var width = context.size?.width ?? 0;
-    var height = context.size?.height ?? 0;
-
-    print("paging: width = $width, height = $height");
-
-    final TextPainter textPainter1 = TextPainter(
-      text: TextSpan(
-        text: '十',
-        style: textStyle,
-      ),
-      maxLines: 1,
-      textDirection: TextDirection.ltr,
-    )..layout(minWidth: 0, maxWidth: width);
-
-    print(
-        "paging: textPainter1.width = ${textPainter1.width} textPainter1.height = ${textPainter1.height}");
-
-    // MAGIC! DO NOT TOUCH!
-    final charWidth = max(textPainter1.width, textPainter1.height);
-    final charHeight = charWidth * 1.5;
-
-    print("paging: charWidth = $charWidth, charHeight = $charHeight");
-
-    final int charsPerLine = (width / charWidth).floor();
-    final int linesPerPage = (height / charHeight).floor();
-
-    print("paging: charsPerLine = $charsPerLine, linesPerPage = $linesPerPage");
-
-    List<String> pages = [];
-    String page = '';
-    int charsLeftInLine = charsPerLine;
-    int linesLeftInPage = linesPerPage;
-    for (int i = 0; i < text.length;) {
-      // case 0: new page
-      if (linesLeftInPage == 0) {
-        pages.add(page);
-        linesLeftInPage = linesPerPage;
-        charsLeftInLine = charsPerLine;
-        page = '';
-        continue;
-      }
-      // case 1: new line (enter)
-      if (charsLeftInLine == 0) {
-        linesLeftInPage--;
-        charsLeftInLine = charsPerLine;
-        // page += '\n';
-        continue;
-      }
-      // case 2: new paragraph -> append & enter
-      if (text[i] == '\n') {
-        page += text[i];
-        charsLeftInLine = 0;
-        i++;
-        continue;
-      }
-      // case 3: normal char -> append
-      page += text[i];
-      charsLeftInLine--;
-      i++;
-    }
-
-    return pages;
+  void paginate(Size size, TextStyle textStyle) {
+    widget.reading.repaginate(Pagination.fromUI(
+        widget.reading.book.file ?? "", size.width, size.height, textStyle));
+    updateReadingStorage();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Book Reader'),
+        title: Text(widget.reading.book.title ?? 'Book Reader'),
       ),
       body: GestureDetector(
         onTapDown: (details) {
           if (!pagenated) {
-            bookToPages();
+            paginate(context.size ?? Size(100, 100), textStyle);
+            pageController.jumpToPage(widget.reading.currentPage ?? 0);
             pagenated = true;
+            return;
           }
+
           final x = details.globalPosition.dx;
           final width = context.size?.width ?? 0;
-          print('x = $x, width = $width');
+          // print('x = $x, width = $width');
 
-          if (x > (width / 2)) {
-            if (currentPage < pages.length - 1) {
+          var currentPage = widget.reading.currentPage ?? 0;
+
+          // 点击翻页：左 1/3 前页，右 1/3 后页
+          if (x > (width * 2 / 3)) {
+            final maxPage = widget.reading.pagination?.pages?.length ?? 1;
+            if (currentPage < maxPage - 1) {
               currentPage++;
+              // 用 pageController listener 自动更新了
+              // widget.reading.currentPage = currentPage;
+              // updateReadingStorage();
+
               // pageController.animateToPage(currentPage,
               //     duration: const Duration(milliseconds: 500),
               //     curve: Curves.easeIn);
@@ -144,28 +111,17 @@ class _BookReaderState extends State<BookReader> {
               //   context,
               //   MaterialPageRoute(builder: (context) => const Library()),
               // );
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('End of Book'),
-                    content: Text('You have reached the end of the book.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('OK'),
-                      ),
-                    ],
-                  );
-                },
-              );
+              simpleAlert(context, "End of Book",
+                  "You have reached the end of the book.");
             }
-          } else {
+          } else if (x < (width * 1 / 3)) {
             if (currentPage > 0) {
               currentPage--;
 
+              // 用 pageController listener 自动更新了
+              // widget.reading.currentPage = currentPage;
+              // updateReadingStorage();
+
               // pageController.animateToPage(currentPage,
               //     duration: const Duration(milliseconds: 500),
               //     curve: Curves.easeIn);
@@ -175,36 +131,42 @@ class _BookReaderState extends State<BookReader> {
               //   context,
               //   MaterialPageRoute(builder: (context) => const Library()),
               // );
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Beginning of Book'),
-                    content:
-                        Text('You have reached the beginning of the book.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('OK'),
-                      ),
-                    ],
-                  );
-                },
-              );
+              simpleAlert(context, "Beginning of Book",
+                  "You have reached the beginning of the book.");
             }
           }
         },
-        child: PageView.builder(
-          controller: pageController,
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(getPageText(index), style: textStyle),
-            );
-          },
-        ),
+        child: LayoutBuilder(builder: (context, constraints) {
+          return PageView.builder(
+            controller: pageController,
+            itemBuilder: (context, index) {
+              // Text(getPageText(index), style: textStyle)
+              return LayoutBuilder(builder: (context, constraints) {
+                // if ((pageSize != constraints.biggest) ||
+                //     (pageTextStyle != textStyle)) {
+                //   // screen size or font changed: re-paginate.
+                //   pageSize = constraints.biggest;
+                //   pageTextStyle = textStyle;
+                //
+                //   paginate(pageSize!, pageTextStyle!);
+                //   print(
+                //       "pageSize=$pageSize, pageTextStyle=$pageTextStyle, pageController=$pageController, widget.reading.currentPage=${widget.reading.currentPage}");
+                //
+                //   try {
+                //     widget.reading.currentPage =
+                //         (widget.reading.currentPage ?? 1) - 1;
+                //     updateReadingStorage();
+                //
+                //     pageController.jumpToPage(widget.reading.currentPage ?? 0);
+                //   } catch (e) {
+                //     print(e);
+                //   }
+                // }
+                return Text(getPageText(index), style: textStyle);
+              }).padding(all: 16);
+            },
+          );
+        }),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -223,8 +185,18 @@ class _BookReaderState extends State<BookReader> {
   }
 
   String getPageText(int index) {
-    if (index < pages.length) {
-      return pages[index];
+    if (index == 0) {
+      // 初始进入阅读时，加载分页之前的临时页面。
+      return "\n\n　　又来看书啦？"
+          "\n\n　　这本「${widget.reading.book.title ?? 'untitled book'}」，"
+          "你已经阅读了 {TODO}，"
+          "上次看到第 ${widget.reading.currentPage} 页。"
+          "\n\n　　点击继续阅读 📖"
+          "\n\n\n\n　　（其实这个页面的目的是，你必须点一下我才能确认页面构建完成了、屏幕尺寸确定了、可以重新计算分页了哈哈。。）";
+    }
+    final pagesLength = widget.reading.pagination?.pages?.length ?? 0;
+    if (index < pagesLength) {
+      return widget.reading.pagination?.pages?[index] ?? "[ErrGetPageText]";
     } else {
       return '[EOF]';
     }

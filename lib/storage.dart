@@ -1,24 +1,48 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:get_storage/get_storage.dart';
 import 'package:mureaderui/model.dart';
 
 class ReadingStorage {
-  Map<int, Reading>? readings;
+  Map<String, Reading>? readings;
   final storage = GetStorage("ReadingStorage");
 
   // ******** storage ops ********
 
   void readStorage() {
-    readings = storage.read("readings");
+    final String? readingsJson = storage.read("readings");
+    if (readingsJson != null) {
+      final readingsMap = jsonDecode(readingsJson);
+      readings = {};
+      for (final key in readingsMap.keys) {
+        readings![key] = Reading.fromJson(readingsMap[key]);
+      }
+    }
+
+    // init
+    if (readings?.isEmpty ?? true) {
+      exampleReadings().then((value) {
+        print("store exampleReadings cuz readings=$readings");
+        readings = value;
+        writeStorage();
+      });
+    }
   }
 
   void writeStorage() {
-    storage.write("readings", readings);
+    // final readingsMap = readings?.map((key, value) {
+    //   return MapEntry(key, value.toJson());
+    // });
+    final String readingsJson = json.encode(readings);
+
+    storage.write("readings", readingsJson);
   }
 
   // ******** readingList crud ********
 
   // addReading 添加阅读一本新书
-  void addReading(Book book) {
+  Reading addReading(Book book) {
     readStorage();
 
     final newReading = Reading(book);
@@ -30,9 +54,11 @@ class ReadingStorage {
     }
 
     writeStorage();
+
+    return newReading;
   }
 
-  Reading? getReading(int ID) {
+  Reading? getReading(String ID) {
     readStorage();
 
     if (readings == null) {
@@ -51,23 +77,27 @@ class ReadingStorage {
 
     final readingList = readings!.values.toList();
 
+    // Google Bard told me that:
+    // the compareTo() method will return 0 if either of the strings are null.
+    // Therefore, it is not necessary to check if the fields are null.
     switch (sortReadingBy) {
       case SortReadingBy.title:
-        readingList.sort((a, b) => a.book.title!.compareTo(b.book.title!));
+        readingList.sort((a, b) => a.book.title?.compareTo(b.book.title!) ?? 0);
         break;
       case SortReadingBy.author:
-        readingList.sort((a, b) => a.book.author!.compareTo(b.book.author!));
+        readingList
+            .sort((a, b) => a.book.author?.compareTo(b.book.author!) ?? 0);
         break;
       case SortReadingBy.lastRead:
-        readingList.sort(
-            (a, b) => a.history!.lastRead!.compareTo(b.history!.lastRead!));
+        readingList.sort((b, a) => // reverse -> (b, a)
+            a.history?.lastRead?.compareTo(b.history!.lastRead!) ?? 0);
         break;
     }
 
     return readingList;
   }
 
-  void updateReading(int ID, Reading updated) {
+  void updateReading(String ID, Reading updated) {
     readStorage();
 
     if (readings == null) {
@@ -79,7 +109,7 @@ class ReadingStorage {
     writeStorage();
   }
 
-  void removeReading(int ID) {
+  void removeReading(String ID) {
     readStorage();
 
     if (readings == null) {
@@ -90,6 +120,12 @@ class ReadingStorage {
 
     writeStorage();
   }
+}
+
+ReadingStorage readingStorage = ReadingStorage();
+
+ReadingStorage getReadingStorage() {
+  return readingStorage;
 }
 
 enum SortReadingBy {
