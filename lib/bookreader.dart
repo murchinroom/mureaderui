@@ -65,15 +65,11 @@ class _BookReaderState extends State<BookReader> {
 
   void _initPlayer() {
     player.onPlayerComplete.listen((_) async {
-      var nextSong = await _recommendNextSong();
-      if (nextSong == null || nextSong.sourceUrl == null) {
-        // unexpected: just in case.
-        nextSong = exampleMusics[0];
-      }
-      player.play(UrlSource(nextSong.sourceUrl!));
-      playingMusic = nextSong;
+      await playNextSong();
     });
-    player.play(UrlSource(exampleMusic[0]));
+    // TODO: first song
+    // player.play(UrlSource(exampleMusic[0]));
+    playNextSong();
   }
 
   void updateReadingStorage() {
@@ -120,6 +116,17 @@ class _BookReaderState extends State<BookReader> {
     final resp =
         await murecom(MurecomRequest(prevPages, currentPages, nextPages));
     return resp.music;
+  }
+
+  /// playNextSong = _recommendNextSong + player.play + playingMusic 状态维护
+  Future<void> playNextSong() async {
+    var nextSong = await _recommendNextSong();
+    if (nextSong == null || nextSong.sourceUrl == null) {
+      // unexpected: just in case.
+      nextSong = exampleMusics[0];
+    }
+    player.play(UrlSource(nextSong.sourceUrl!));
+    playingMusic = nextSong;
   }
 
   @override
@@ -289,9 +296,9 @@ class _ControlPanelState extends State<ControlPanel> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Hunch Gray",
+                Text(bookReader.playingMusic?.title ?? "Hunch Gray",
                     style: Theme.of(context).textTheme.labelLarge),
-                Text("ZUTOMAYO",
+                Text(bookReader.playingMusic?.artist ?? "ZUTOMAYO",
                     style: Theme.of(context).textTheme.labelMedium),
               ],
             ),
@@ -313,10 +320,9 @@ class _ControlPanelState extends State<ControlPanel> {
               IconButton(
                   icon: const Icon(Icons.skip_next_rounded),
                   onPressed: () {
-                    // simpleAlert(context, "TODO", "next");
-                    final music =
-                        exampleMusic[Random().nextInt(exampleMusic.length)];
-                    bookReader.player.play(UrlSource(music));
+                    setState(() {  // setState: force ui update: music card
+                      bookReader.playNextSong();
+                    });
                   },
                   style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all(
