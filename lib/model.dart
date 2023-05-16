@@ -293,12 +293,34 @@ class MurecomRequest {
   List<String> nextPages;
 
   MurecomRequest(this.prevPages, this.currentPages, this.nextPages);
+
+  // JSON encode / decode
+
+  Map<String, dynamic> toJson() => {
+        'prevPages': prevPages,
+        'currentPages': currentPages,
+        'nextPages': nextPages,
+      };
+
+  MurecomRequest.fromJson(Map<String, dynamic>? json)
+      : prevPages = json?['prevPages'],
+        currentPages = json?['currentPages'],
+        nextPages = json?['nextPages'];
 }
 
 class MurecomResponse {
   Music? music;
 
   MurecomResponse({this.music});
+
+  // JSON encode / decode
+
+  Map<String, dynamic> toJson() => {
+        'music': music?.toJson(),
+      };
+
+  MurecomResponse.fromJson(Map<String, dynamic>? json)
+      : music = Music.fromJson(json?['music']);
 }
 
 class Music {
@@ -308,6 +330,21 @@ class Music {
   String? sourceUrl;
 
   Music({this.title, this.artist, this.coverImage, this.sourceUrl});
+
+  // JSON encode / decode
+
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'artist': artist,
+        'coverImage': coverImage,
+        'sourceUrl': sourceUrl,
+      };
+
+  Music.fromJson(Map<String, dynamic>? json)
+      : title = json?['title'],
+        artist = json?['artist'],
+        coverImage = json?['coverImage'],
+        sourceUrl = json?['sourceUrl'];
 }
 
 // *********************** Example Instances ***********************

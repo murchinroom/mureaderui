@@ -39,6 +39,7 @@ dependencies:
   epub_view: ^3.0.0
   audioplayers: ^4.0.1
   get_storage: ^2.1.1
+  http: ^0.13.6
 
 dev_dependencies:
   flutter_test:
