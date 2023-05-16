@@ -12,6 +12,10 @@ class Library extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (readingList.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
