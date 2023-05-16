@@ -301,7 +301,7 @@ class _ControlPanelState extends State<ControlPanel> {
                 Text(bookReader.playingMusic?.artist ?? "ZUTOMAYO",
                     style: Theme.of(context).textTheme.labelMedium),
               ],
-            ),
+            ).width(musicImageWidth),
             const Spacer(),
             Row(children: [
               IconButton(
