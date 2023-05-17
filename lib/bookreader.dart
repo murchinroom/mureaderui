@@ -131,116 +131,126 @@ class _BookReaderState extends State<BookReader> {
     controlPanelKey.currentState?.setState(() {});
   }
 
+  // stop playing music when leaving this page
+  onWillPop() {
+    print("BookReader onWillPop: stop playing music");
+    player.stop();
+    return Future.value(true);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.reading.book.title ?? 'Book Reader'),
-      ),
-      body: GestureDetector(
-        onTapDown: (details) {
-          if (!pagenated) {
-            paginate(context.size ?? Size(100, 100), textStyle);
-            pageController.jumpToPage(widget.reading.currentPage ?? 0);
-            pagenated = true;
-            return;
-          }
+    return WillPopScope(
+        onWillPop: () => onWillPop(),
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(widget.reading.book.title ?? 'Book Reader'),
+          ),
+          body: GestureDetector(
+            onTapDown: (details) {
+              if (!pagenated) {
+                paginate(context.size ?? Size(100, 100), textStyle);
+                pageController.jumpToPage(widget.reading.currentPage ?? 0);
+                pagenated = true;
+                return;
+              }
 
-          final x = details.globalPosition.dx;
-          final width = context.size?.width ?? 0;
-          // print('x = $x, width = $width');
+              final x = details.globalPosition.dx;
+              final width = context.size?.width ?? 0;
+              // print('x = $x, width = $width');
 
-          var currentPage = widget.reading.currentPage ?? 0;
+              var currentPage = widget.reading.currentPage ?? 0;
 
-          // 点击翻页：左 1/3 前页，右 1/3 后页
-          if (x > (width * 2 / 3)) {
-            final maxPage = widget.reading.pagination?.pages?.length ?? 1;
-            if (currentPage < maxPage - 1) {
-              currentPage++;
-              // 用 pageController listener 自动更新了
-              // widget.reading.currentPage = currentPage;
-              // updateReadingStorage();
+              // 点击翻页：左 1/3 前页，右 1/3 后页
+              if (x > (width * 2 / 3)) {
+                final maxPage = widget.reading.pagination?.pages?.length ?? 1;
+                if (currentPage < maxPage - 1) {
+                  currentPage++;
+                  // 用 pageController listener 自动更新了
+                  // widget.reading.currentPage = currentPage;
+                  // updateReadingStorage();
 
-              // pageController.animateToPage(currentPage,
-              //     duration: const Duration(milliseconds: 500),
-              //     curve: Curves.easeIn);
-              pageController.jumpToPage(currentPage);
-            } else {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => const Library()),
-              // );
-              simpleAlert(context, "End of Book",
-                  "You have reached the end of the book.");
-            }
-          } else if (x < (width * 1 / 3)) {
-            if (currentPage > 0) {
-              currentPage--;
+                  // pageController.animateToPage(currentPage,
+                  //     duration: const Duration(milliseconds: 500),
+                  //     curve: Curves.easeIn);
+                  pageController.jumpToPage(currentPage);
+                } else {
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => const Library()),
+                  // );
+                  simpleAlert(context, "End of Book",
+                      "You have reached the end of the book.");
+                }
+              } else if (x < (width * 1 / 3)) {
+                if (currentPage > 0) {
+                  currentPage--;
 
-              // 用 pageController listener 自动更新了
-              // widget.reading.currentPage = currentPage;
-              // updateReadingStorage();
+                  // 用 pageController listener 自动更新了
+                  // widget.reading.currentPage = currentPage;
+                  // updateReadingStorage();
 
-              // pageController.animateToPage(currentPage,
-              //     duration: const Duration(milliseconds: 500),
-              //     curve: Curves.easeIn);
-              pageController.jumpToPage(currentPage);
-            } else {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => const Library()),
-              // );
-              simpleAlert(context, "Beginning of Book",
-                  "You have reached the beginning of the book.");
-            }
-          }
-        },
-        child: LayoutBuilder(builder: (context, constraints) {
-          return PageView.builder(
-            controller: pageController,
-            itemBuilder: (context, index) {
-              // Text(getPageText(index), style: textStyle)
-              return LayoutBuilder(builder: (context, constraints) {
-                // if ((pageSize != constraints.biggest) ||
-                //     (pageTextStyle != textStyle)) {
-                //   // screen size or font changed: re-paginate.
-                //   pageSize = constraints.biggest;
-                //   pageTextStyle = textStyle;
-                //
-                //   paginate(pageSize!, pageTextStyle!);
-                //   print(
-                //       "pageSize=$pageSize, pageTextStyle=$pageTextStyle, pageController=$pageController, widget.reading.currentPage=${widget.reading.currentPage}");
-                //
-                //   try {
-                //     widget.reading.currentPage =
-                //         (widget.reading.currentPage ?? 1) - 1;
-                //     updateReadingStorage();
-                //
-                //     pageController.jumpToPage(widget.reading.currentPage ?? 0);
-                //   } catch (e) {
-                //     print(e);
-                //   }
-                // }
-                return Text(getPageText(index), style: textStyle);
-              }).padding(all: 16);
+                  // pageController.animateToPage(currentPage,
+                  //     duration: const Duration(milliseconds: 500),
+                  //     curve: Curves.easeIn);
+                  pageController.jumpToPage(currentPage);
+                } else {
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => const Library()),
+                  // );
+                  simpleAlert(context, "Beginning of Book",
+                      "You have reached the beginning of the book.");
+                }
+              }
             },
-          );
-        }),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-              context: context,
-              builder: (BuildContext context) {
-                return Center(
-                  child: ControlPanel(bookReader: this, key: controlPanelKey),
-                ).clipRRect(all: 16);
-              });
-        },
-        child: const Icon(Icons.subject),
-        // backgroundColor: Colors.green,
-      ),
-    );
+            child: LayoutBuilder(builder: (context, constraints) {
+              return PageView.builder(
+                controller: pageController,
+                itemBuilder: (context, index) {
+                  // Text(getPageText(index), style: textStyle)
+                  return LayoutBuilder(builder: (context, constraints) {
+                    // if ((pageSize != constraints.biggest) ||
+                    //     (pageTextStyle != textStyle)) {
+                    //   // screen size or font changed: re-paginate.
+                    //   pageSize = constraints.biggest;
+                    //   pageTextStyle = textStyle;
+                    //
+                    //   paginate(pageSize!, pageTextStyle!);
+                    //   print(
+                    //       "pageSize=$pageSize, pageTextStyle=$pageTextStyle, pageController=$pageController, widget.reading.currentPage=${widget.reading.currentPage}");
+                    //
+                    //   try {
+                    //     widget.reading.currentPage =
+                    //         (widget.reading.currentPage ?? 1) - 1;
+                    //     updateReadingStorage();
+                    //
+                    //     pageController.jumpToPage(widget.reading.currentPage ?? 0);
+                    //   } catch (e) {
+                    //     print(e);
+                    //   }
+                    // }
+                    return Text(getPageText(index), style: textStyle);
+                  }).padding(all: 16);
+                },
+              );
+            }),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              showModalBottomSheet(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Center(
+                      child:
+                          ControlPanel(bookReader: this, key: controlPanelKey),
+                    ).clipRRect(all: 16);
+                  });
+            },
+            child: const Icon(Icons.subject),
+            // backgroundColor: Colors.green,
+          ),
+        ));
   }
 
   String getPageText(int index) {
@@ -290,7 +300,8 @@ class _ControlPanelState extends State<ControlPanel> {
         children: [
           // Music Card
           Row(children: [
-            Image.network("https://picsum.photos/200/20${Random().nextInt(10).toString()}",
+            Image.network(
+                    "https://picsum.photos/200/20${Random().nextInt(10).toString()}",
                     width: musicImageWidth,
                     height: musicImageWidth,
                     fit: BoxFit.contain)
