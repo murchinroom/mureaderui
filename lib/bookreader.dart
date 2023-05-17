@@ -127,6 +127,8 @@ class _BookReaderState extends State<BookReader> {
     }
     player.play(UrlSource(nextSong.sourceUrl!));
     playingMusic = nextSong;
+
+    controlPanelKey.currentState?.setState(() {});
   }
 
   @override
@@ -231,7 +233,7 @@ class _BookReaderState extends State<BookReader> {
               context: context,
               builder: (BuildContext context) {
                 return Center(
-                  child: ControlPanel(bookReader: this),
+                  child: ControlPanel(bookReader: this, key: controlPanelKey),
                 ).clipRRect(all: 16);
               });
         },
@@ -269,6 +271,8 @@ class ControlPanel extends StatefulWidget {
   _ControlPanelState createState() => _ControlPanelState(this.bookReader);
 }
 
+GlobalKey<_ControlPanelState> controlPanelKey = GlobalKey();
+
 class _ControlPanelState extends State<ControlPanel> {
   final _BookReaderState bookReader;
 
@@ -286,7 +290,7 @@ class _ControlPanelState extends State<ControlPanel> {
         children: [
           // Music Card
           Row(children: [
-            Image.network("https://picsum.photos/200/200",
+            Image.network("https://picsum.photos/200/20${Random().nextInt(10).toString()}",
                     width: musicImageWidth,
                     height: musicImageWidth,
                     fit: BoxFit.contain)
@@ -320,7 +324,8 @@ class _ControlPanelState extends State<ControlPanel> {
               IconButton(
                   icon: const Icon(Icons.skip_next_rounded),
                   onPressed: () {
-                    setState(() {  // setState: force ui update: music card
+                    setState(() {
+                      // setState: force ui update: music card
                       bookReader.playNextSong();
                     });
                   },
