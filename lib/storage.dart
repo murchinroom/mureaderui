@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:get_storage/get_storage.dart';
+import 'package:mureaderui/library.dart';
 import 'package:mureaderui/model.dart';
 
 class ReadingStorage {
@@ -26,6 +27,8 @@ class ReadingStorage {
         print("store exampleReadings cuz readings=$readings");
         readings = value;
         writeStorage();
+
+        libraryKey.currentState?.updateUI();
       });
     }
   }
@@ -46,6 +49,10 @@ class ReadingStorage {
     readStorage();
 
     final newReading = Reading(book);
+
+    newReading.history = History.fromJson({
+      "lastRead": DateTime.now().toIso8601String(),
+    });
 
     if (readings == null) {
       readings = {newReading.ID: newReading};
