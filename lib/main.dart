@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'mureader',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -103,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () {
           showDialog(context: context, builder: (context) => AddBookView());
         },
-        tooltip: 'Increment',
+        tooltip: '添加书籍',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
